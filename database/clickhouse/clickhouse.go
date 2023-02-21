@@ -79,6 +79,10 @@ func (ch *ClickHouse) Open(dsn string) (database.Driver, error) {
 		return nil, err
 	}
 
+	database := purl.Query().Get("database")
+	if db := strings.TrimPrefix(purl.Path, "/"); len(database) == 0 && len(db) != 0 {
+		database = db
+	}
 	multiStatementMaxSize := DefaultMultiStatementMaxSize
 	if s := purl.Query().Get("x-multi-statement-max-size"); len(s) > 0 {
 		multiStatementMaxSize, err = strconv.Atoi(s)
@@ -97,7 +101,7 @@ func (ch *ClickHouse) Open(dsn string) (database.Driver, error) {
 		config: &Config{
 			MigrationsTable:       purl.Query().Get("x-migrations-table"),
 			MigrationsTableEngine: migrationsTableEngine,
-			DatabaseName:          purl.Query().Get("database"),
+			DatabaseName:          database,
 			ClusterName:           purl.Query().Get("x-cluster-name"),
 			MultiStatementEnabled: purl.Query().Get("x-multi-statement") == "true",
 			MultiStatementMaxSize: multiStatementMaxSize,
